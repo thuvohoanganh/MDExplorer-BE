@@ -1,11 +1,11 @@
 const express = require('express');
-// const mongoose = require('mongoose');
-// const path = require('path');
+const mongoose = require('mongoose');
+const path = require('path');
 const cors = require('cors');
 
 
-const factorRoutes = require('./routes/factor-routes');
-const userRoutes = require('./routes/user-routes');
+const subjectsRoutes = require('./routes/subjects-routes');
+const subjectRoutes = require('./routes/subject-routes');
 const HttpError = require('./models/http-error');
 const bodyParse = require('body-parser');
 const app = express();
@@ -31,8 +31,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/api/subject', userRoutes);
-app.use('/api/subjects', factorRoutes);
+app.use('/api/subject', subjectRoutes);
+app.use('/api/subjects', subjectsRoutes);
 
 app.use((req, res, next) => {
   const error = new HttpError('Could not find this route.', 404);
@@ -51,17 +51,17 @@ app.use((error, req, res, next) => {
   });
 });
 
-app.listen(process.env.PORT || 5000);
+// app.listen(8000);
 
-// mongoose
-//   .connect('mongodb+srv://everly:xanhduong@elearning.whpyx.mongodb.net/self-tracking?retryWrites=true&w=majority')
-//   .then(() => {
-//     app.listen(process.env.PORT || 5000);
-//     console.log("Connect database successfully");
-//   })
-//   .catch(err => {
-//     console.log("err", err);
-//   });
+mongoose
+  .connect('mongodb+srv://everly:xanhduong@elearning.whpyx.mongodb.net/multimodal-data?retryWrites=true&w=majority')
+  .then(() => {
+    app.listen(process.env.PORT || 8000);
+    console.log("Connect database successfully");
+  })
+  .catch(err => {
+    console.log("err", err);
+  });
 
 
 
