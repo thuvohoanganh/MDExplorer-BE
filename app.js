@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
 
-
+const datatypeRoutes = require('./routes/datatype-routes');
 const subjectsRoutes = require('./routes/subjects-routes');
 const subjectRoutes = require('./routes/subject-routes');
 const HttpError = require('./models/http-error');
@@ -33,6 +33,7 @@ app.use((req, res, next) => {
 
 app.use('/api/subject', subjectRoutes);
 app.use('/api/subjects', subjectsRoutes);
+app.use('/api/datatype', datatypeRoutes);
 
 app.use((req, res, next) => {
   const error = new HttpError('Could not find this route.', 404);
@@ -50,8 +51,6 @@ app.use((error, req, res, next) => {
     data: error.data
   });
 });
-
-// app.listen(8000);
 
 mongoose
   .connect('mongodb+srv://everly:xanhduong@elearning.whpyx.mongodb.net/multimodal-data?retryWrites=true&w=majority')

@@ -26,9 +26,7 @@ const CsvSchema = new mongoose.Schema({
     within_distribution: {
         type: String, 
     },
-    between_distribution: {
-        type: String, 
-    },
+    between_distribution: { type: mongoose.Schema.Types.ObjectId, ref: "BetweenDistribution" },
     createdAt: { type: Date, default: Date.now },
 })
 

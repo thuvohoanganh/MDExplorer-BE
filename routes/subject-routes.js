@@ -7,6 +7,9 @@ router.get('/multimodal-data/:subject_id', subjectController.getSubjectMultiModa
 
 router.get('/video/:subject_id', subjectController.getVideo);
 
-router.post('/datatype-overview', subjectController.getDataTypeOverview);
+router.post('/statistic', subjectController.getStatistic);
+
+router.get('/import/:subject_id', subjectController.importData);
+
 
 module.exports = router;
