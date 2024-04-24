@@ -152,8 +152,47 @@ const getStatistic = async (req, res, next) => {
     }
 }
 
-const getOneDataType = (req, res, next) => {
+const getOneDataType = async (req, res, next) => {
+    const data_type = req.body.data_type
+    try {
+        const returnData = {
+            data_type: data_type,
+	        category: "",
+	        subjects: [],
+            columns: [],
+	        data: []
 
+        }
+        const csvList = await Csv.find({ data_type });
+        if (csvList.lenght === 0) {
+            throw("Can not find data type " + data_type)
+        }
+
+        returnData.category = csvList[0].category
+        returnData.columns = JSON.parse(csvList[0].columns)
+
+        csvList.forEach((csv) => {
+            if (!returnData.subjects.includes(csv.subject_id)) {
+                returnData.subjects.push(csv.subject_id)
+            }
+
+            returnData.data.push({
+                subject_id: csv.subject_id,
+                rows: JSON.parse(csv.rows)
+            })
+        })
+
+        res.status(200).json({
+            data: returnData
+        })
+    } catch(err) {
+        console.log(err)
+        const error = new HttpError(
+            "Get data type fail",
+            500
+        );
+        return next(error);
+    }
 }
 
 const importData = async (req, res, next) => {

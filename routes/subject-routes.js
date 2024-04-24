@@ -11,5 +11,7 @@ router.post('/statistic', subjectController.getStatistic);
 
 router.get('/import/:subject_id', subjectController.importData);
 
+router.get('/list', subjectController.getSubjectList);
+
 
 module.exports = router;
