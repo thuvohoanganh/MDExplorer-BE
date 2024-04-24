@@ -8,3 +8,5 @@
 2. GET - http://localhost:8000/api/subject/multimodal-data/${subject_id}.
    * Get multimodal data of a subject.
    * e.g http://localhost:8000/api/subject/multimodal-data/1.
+3. POST - http://localhost:8000/api/datatype/all-subjects
+   * body { "data_type": "HR" }
