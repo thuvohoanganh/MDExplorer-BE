@@ -1,7 +1,7 @@
 # MDExplorer
 1. npm install
 2. npm run dev
-3. Try to fetch data in component
+3. Try to fetch data in FE component
    e.g:
 ```
    function ExampleComponent(props){
