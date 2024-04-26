@@ -3,16 +3,19 @@
 2. npm run dev
 3. Try to fetch data in component
    e.g:
+```
    function ExampleComponent(props){
      useEffect(() => {
        axios.post("http://localhost:8000/api/datatype/all-subjects", { "data_type": "HR" })
             .then((res) => console.log(res.data.data))
             .catch(err => {
             console.error(err);
-        }); 
+        });
      }, [])
      return (<div></div>)
    }
+```
+
 # APIs
 1. Get all subject id.
    * GET - http://localhost:8000/api/subject/list
