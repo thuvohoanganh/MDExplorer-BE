@@ -5,7 +5,7 @@ const importController = require('../controllers/import');
 
 router.post('/metadata', importController.importMetadata);
 
-router.get('subject/:subject_id', importController.importData);
+router.get('/subject/:subject_id', importController.importData);
 
 router.get('/gathermissingness', importController.gatherMissing);
 

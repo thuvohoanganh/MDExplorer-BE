@@ -53,6 +53,7 @@ app.use((error, req, res, next) => {
 });
 
 mongoose
+  .set('strictQuery', false)
   .connect('mongodb+srv://everly:xanhduong@elearning.whpyx.mongodb.net/multimodal-data?retryWrites=true&w=majority')
   .then(() => {
     app.listen(process.env.PORT || 8000);

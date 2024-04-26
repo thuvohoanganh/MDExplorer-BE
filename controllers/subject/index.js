@@ -27,7 +27,7 @@ const getSubjectMultiModalData = async (req, res, next) => {
 
     try {
         const csv = await Csv.find({ subject_id });
-
+        
         csv.forEach((csv) => {
             const data = {
                 data_type: "",
@@ -45,14 +45,13 @@ const getSubjectMultiModalData = async (req, res, next) => {
             data.rows = JSON.parse(csv.rows)
 
             //START - Find Min, Max of time range
-            const timeColumnIndex = data.columns.findIndex((e) => e === "timestamp")
             const rowNumber = data.rows.length
-            if (timeColumnIndex > -1 && rowNumber > 0) {
-                if (data.rows[0][timeColumnIndex] < returnData.time_range.min) {
-                    returnData.time_range.min = data.rows[0][timeColumnIndex]
+            if (rowNumber > 0) {
+                if (data.rows[0]["timestamp"] < returnData.time_range.min) {
+                    returnData.time_range.min = data.rows[0]["timestamp"]
                 }
-                if (data.rows[rowNumber - 1][timeColumnIndex] > returnData.time_range.max) {
-                    returnData.time_range.max = data.rows[rowNumber - 1][timeColumnIndex]
+                if (data.rows[rowNumber - 1]["timestamp"] > returnData.time_range.max) {
+                    returnData.time_range.max = data.rows[rowNumber - 1]["timestamp"]
                 }
             }
             //END - Find Min, Max of time range
