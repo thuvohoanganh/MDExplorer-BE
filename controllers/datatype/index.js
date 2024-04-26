@@ -16,7 +16,7 @@ const getDataTypeMetadata = async (req, res, next) => {
     }
 
     try {
-        const returndata = await Metadata.find({ data_type });
+        returndata = await Metadata.findOne({ data_type });
         if (!returndata) {
             const error = new HttpError(
                 'Could not find metadata of data type' + req.params.data_type,

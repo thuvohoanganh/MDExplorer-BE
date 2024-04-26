@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+const importRoutes = require('./routes/import-routes');
 const datatypeRoutes = require('./routes/datatype-routes');
 const subjectRoutes = require('./routes/subject-routes');
 const HttpError = require('./models/http-error');
@@ -31,6 +32,8 @@ app.use((req, res, next) => {
 
 app.use('/api/subject', subjectRoutes);
 app.use('/api/datatype', datatypeRoutes);
+app.use('/api/import', importRoutes);
+
 
 app.use((req, res, next) => {
   const error = new HttpError('Could not find this route.', 404);

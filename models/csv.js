@@ -9,7 +9,6 @@ const CsvSchema = new mongoose.Schema({
         type: Number,
         required: true 
     },
-    metadata: { type: mongoose.Schema.Types.ObjectId, ref: "Metadata" },
     columns: {
         type: Array, 
         required: true
@@ -26,7 +25,9 @@ const CsvSchema = new mongoose.Schema({
     within_distribution: {
         type: String, 
     },
-    between_distribution: { type: mongoose.Schema.Types.ObjectId, ref: "BetweenDistribution" },
+    missingness: {
+        type: String, 
+    },
     createdAt: { type: Date, default: Date.now },
 })
 
