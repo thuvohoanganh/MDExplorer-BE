@@ -6,7 +6,7 @@
 ```
    function ExampleComponent(props){
      useEffect(() => {
-       axios.post("http://localhost:8000/api/datatype/all-subjects", { "data_type": "HR" })
+       axios.post("http://localhost:8000/api/datatype/all-subjects", { "data_type": "E4_HR" })
             .then((res) => { console.log(res.data.data) })
             .catch(err => { console.error(err) });
         };
