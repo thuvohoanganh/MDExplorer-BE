@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const CsvSchema = new mongoose.Schema({
+    dataset_name: {
+        type: String,
+        required: true,
+    },
     data_type: {
         type: String, 
         required: true, 

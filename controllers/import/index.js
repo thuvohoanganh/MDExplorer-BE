@@ -2,15 +2,14 @@ const HttpError = require('../../models/http-error');
 const Csv = require('../../models/csv');
 const fs = require('fs');
 const path = require('path');
-const Metadata = [];
-const BetweenDistribution = []
 const missingness = []
 const within_distrubution = []
-// const Metadata = require('../../models/metadata');
-// const BetweenDistribution = require('../../models/between-distribution')
+const Metadata = require('../../models/metadata');
+const BetweenDistribution = require('../../models/between-distribution')
 // const missingness = require('../../dataset/statistic/missingness/gather.json')
 // const within_distrubution = require('../../dataset/statistic/within_distrubution/gather.json')
 const folders = ['Attention', 'BrainWave', 'E4_ACC', 'E4_BVP', 'E4_EDA', 'E4_HR', 'E4_IBI', 'E4_TEMP', 'Meditation', 'Polar_HR']
+const { EMOCON } = require('../../constant') 
 
 const importData = async (req, res, next) => {
     const subject_id = req.params.subject_id
@@ -214,10 +213,31 @@ const importBetweenDistribution = async (req, res, next) => {
     })
 }
 
+const addField = async (req, res, next) => {
+    const dataset_name = EMOCON
+    try {
+        const update  = await BetweenDistribution.updateMany(
+            {  },
+            { 
+                dataset_name
+            }
+         );
+
+         console.log(update)
+    } catch {(err) => {
+        console.log(err)
+    }}
+
+
+    res.status(201).json({
+        data: "addField success"
+    })
+}
 module.exports = {
     importData,
     gatherMissing,
     gatherWithin,
     importMetadata,
-    importBetweenDistribution
+    importBetweenDistribution,
+    addField
 }

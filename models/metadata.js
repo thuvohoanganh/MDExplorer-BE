@@ -7,6 +7,10 @@ const MetadataSchema = new mongoose.Schema({
   device: { type: String },
   sampling_rate: { type: String },
   createdAt: { type: Date, default: Date.now },
+  dataset_name: {
+    type: String,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model("Metadata", MetadataSchema);

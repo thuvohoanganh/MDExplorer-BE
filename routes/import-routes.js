@@ -13,4 +13,6 @@ router.get('/gather_within_distribution', importController.gatherWithin);
 
 router.get('/between-distribution', importController.importBetweenDistribution);
 
+router.get('/update-dataset-name', importController.addField);
+
 module.exports = router;
