@@ -3,12 +3,12 @@ const router = express.Router();
 
 const subjectController = require('../controllers/subject');
 
-router.get('/multimodal-data/:subject_id', subjectController.getSubjectMultiModalData);
+router.post('/multimodal-data/', subjectController.getSubjectMultiModalData);
 
-router.get('/video/:subject_id', subjectController.getVideo);
+router.post('/video/:subject_id', subjectController.getVideo);
 
 router.post('/statistic', subjectController.getStatistic);
 
-router.get('/list', subjectController.getSubjectList);
+router.post('/list', subjectController.getSubjectList);
 
 module.exports = router;
