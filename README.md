@@ -30,4 +30,5 @@
 6. Get data of one data type from all subjects
    * POST - http://localhost:8000/api/datatype/all-subjects
    * body { "data_type": "E4_BVP" }
-
+7. Get all data types
+ * GET - http://localhost:8000/api/datatype/list
