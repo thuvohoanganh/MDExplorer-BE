@@ -1,5 +1,5 @@
-#Documentation
-https://docs.google.com/document/d/1dg0ueT2XM0rJ2dlfJ731yGq47cOdkYPbpHfphn-auyA/edit
+# Documentation
+* https://docs.google.com/document/d/1dg0ueT2XM0rJ2dlfJ731yGq47cOdkYPbpHfphn-auyA/edit
 
 # MDExplorer
 1. npm install
