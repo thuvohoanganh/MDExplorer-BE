@@ -1,4 +1,5 @@
 const Metadata = require('../../models/metadata');
+const DATA_TYPES = ['E4_ACC', 'E4_BVP', 'E4_EDA', 'E4_HR', 'E4_IBI', 'E4_TEMP', 'Polar_HR']
 
 const getDataTypeMetadata = async (req, res, next) => {
     const data_type = req.body.data_type
@@ -36,6 +37,13 @@ const getDataTypeMetadata = async (req, res, next) => {
     })
 }
 
+const getDataTypeList = async (req, res, next) => {
+    res.status(200).json({
+        data: DATA_TYPES
+    });
+}
+
 module.exports = {
-    getDataTypeMetadata
+    getDataTypeMetadata,
+    getDataTypeList
 }
