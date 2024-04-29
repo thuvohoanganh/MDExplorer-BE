@@ -17,18 +17,20 @@
 
 # APIs
 1. Get all subject id.
-   * GET - http://localhost:8000/api/subject/list
+   * POST - http://localhost:8000/api/subject/list
+   * body { "dataset_name": "k-emocon" }
 2. Get multimodal data of a subject
-   * GET - http://localhost:8000/api/subject/multimodal-data/${subject_id}
-   * e.g http://localhost:8000/api/subject/multimodal-data/1
+   * POST - http://localhost:8000/api/subject/multimodal-data
+   * body { "dataset_name": "k-emocon" }
 3. Get meta data of one data type
    * POST - http://localhost:8000/api/datatype/metadata
-   * body { "data_type": "E4_BVP" }
+   * body { "data_type": "E4_BVP", "dataset_name": "k-emocon" }
 4. Get statistic of one datatype
    * POST - http://localhost:8000/api/subject/statistic
-   * body { "subject_id": 4, "data_type": "E4_HR" }
+   * body { "subject_id": 4, "data_type": "E4_HR", "dataset_name": "k-emocon" }
 6. Get data of one data type from all subjects
    * POST - http://localhost:8000/api/datatype/all-subjects
-   * body { "data_type": "E4_BVP" }
+   * body { "data_type": "E4_BVP", "dataset_name": "k-emocon" }
 7. Get all data types
-   * GET - http://localhost:8000/api/datatype/list
+   * POST - http://localhost:8000/api/datatype/list
+   * body { "dataset_name": "k-emocon" }
