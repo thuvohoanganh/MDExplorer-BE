@@ -2,11 +2,14 @@ const HttpError = require('../../models/http-error');
 const Csv = require('../../models/csv');
 const fs = require('fs');
 const path = require('path');
-const Metadata = require('../../models/metadata');
-const BetweenDistribution = require('../../models/between-distribution')
-
-const missingness = require('../../dataset/statistic/missingness/gather.json')
-const within_distrubution = require('../../dataset/statistic/within_distrubution/gather.json')
+const Metadata = [];
+const BetweenDistribution = []
+const missingness = []
+const within_distrubution = []
+// const Metadata = require('../../models/metadata');
+// const BetweenDistribution = require('../../models/between-distribution')
+// const missingness = require('../../dataset/statistic/missingness/gather.json')
+// const within_distrubution = require('../../dataset/statistic/within_distrubution/gather.json')
 const folders = ['Attention', 'BrainWave', 'E4_ACC', 'E4_BVP', 'E4_EDA', 'E4_HR', 'E4_IBI', 'E4_TEMP', 'Meditation', 'Polar_HR']
 
 const importData = async (req, res, next) => {
