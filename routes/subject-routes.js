@@ -5,7 +5,7 @@ const subjectController = require('../controllers/subject');
 
 router.post('/multimodal-data/', subjectController.getSubjectMultiModalData);
 
-router.post('/video/:subject_id', subjectController.getVideo);
+router.post('/video', subjectController.getVideo);
 
 router.post('/statistic', subjectController.getStatistic);
 

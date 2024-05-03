@@ -101,6 +101,7 @@ const getVideo = async (req, res, next) => {
             data: videos.map(record => record.toObject({ getters: true }))
         })
     } catch (err) {
+        console.log(err)
         const error = new HttpError(
             "Get video fail",
             500

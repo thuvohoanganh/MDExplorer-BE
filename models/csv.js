@@ -14,7 +14,7 @@ const CsvSchema = new mongoose.Schema({
         required: true 
     },
     columns: {
-        type: Array, 
+        type: String, 
         required: true
     },
     rows: {
