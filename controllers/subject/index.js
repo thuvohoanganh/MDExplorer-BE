@@ -3,6 +3,8 @@ const Csv = require('../../models/csv');
 const Video = require('../../models/video');
 const BetweenDistribution = require('../../models/between-distribution');
 const { SUBJECT_IDS } = require('../../constant')
+const WithinDistribution = require('../../models/within-distribution')
+const Missingness = require('../../models/missingness');
 
 const getSubjectMultiModalData = async (req, res, next) => {
     const subject_id = parseInt(req.body.subject_id || -1)
@@ -133,23 +135,18 @@ const getStatistic = async (req, res, next) => {
 
     }
     try {
-        const csv = await Csv.findOne({ subject_id, data_type, dataset_name });
+        const withinDistribution = await WithinDistribution.findOne({ subject_id, data_type, dataset_name });
         const betweenDistribution = await BetweenDistribution.findOne({ data_type, dataset_name });
-
-        if (!csv) {
-            const error = new HttpError(
-                'Could not find statistic',
-                500
-            );
-            return next(error);
-        }
-
-        returnData.data_type = csv.data_type
-        returnData.within_distribution = JSON.parse(csv.within_distribution)
-        returnData.missingness = JSON.parse(csv.missingness)
+        const missingness = await Missingness.findOne({ subject_id, data_type, dataset_name });
 
         if (betweenDistribution) {
             returnData.between_distribution = JSON.parse(betweenDistribution.data)
+        }
+        if (withinDistribution) {
+            returnData.within_distribution = JSON.parse(withinDistribution.data)
+        }
+        if (missingness) {
+            returnData.missingness = JSON.parse(missingness.data)
         }
 
         res.status(200).json({  

@@ -7,6 +7,7 @@ const Metadata = require('../../models/metadata');
 const BetweenDistribution = require('../../models/between-distribution')
 const WithinDistribution = require('../../models/within-distribution')
 const Video = require('../../models/video');
+const Missingness = require('../../models/missingness');
 const { SUBJECT_IDS } = require('../../constant')
 
 const missingness = []
@@ -242,7 +243,7 @@ const importWithinDistribution = async (req, res, next) => {
                         subject_id,
                     })
                     await WithinDistribution.create(data);
-                    console.log(data)
+                    // console.log(data)
                 });
             });
         } catch{(err) => {
@@ -250,10 +251,6 @@ const importWithinDistribution = async (req, res, next) => {
         }}
 
     })
-
-    ['external_annotations',
-        'partner_annotations',
-        'self_annotations']
 
     const partnerPath = path.join(statistic, 'partner_annotations')
     fs.readdir(partnerPath, function (err, files) {
@@ -308,6 +305,96 @@ const importWithinDistribution = async (req, res, next) => {
                 subject_id,
             })
             await WithinDistribution.create(data);
+            // console.log(data)
+        });
+
+    });
+
+    res.status(201).json({
+        data: "import success"
+    })
+}
+
+const importMissingness = async (req, res, next) => {
+    const statistic = path.join(__dirname, '..', '..', 'dataset', 'statistic', 'missingness');
+
+    folders.forEach(async (folder) => {
+        const folderPath = path.join(statistic, folder)
+        try {
+            fs.readdir(folderPath, function (err, files) {
+                files?.forEach(async function (file) {
+                    const filePath = path.join(folderPath, file)
+                    const stringJson = fs.readFileSync(filePath)
+                    const subject_id = parseInt(file.replace(`${folder}_`, "").replace(".json", ""))
+                    const data = new Missingness({
+                        data_type: folder,
+                        data: stringJson.toString(),
+                        dataset_name: EMOCON,
+                        subject_id,
+                    })
+                    await Missingness.create(data);
+                    // console.log(data)
+                });
+            });
+        } catch{(err) => {
+            console.log(err)
+        }}
+
+    })
+
+    const partnerPath = path.join(statistic, 'partner_annotations')
+    fs.readdir(partnerPath, function (err, files) {
+        files?.forEach(async function (file) {
+            const filePath = path.join(partnerPath, file)
+            const stringJson = fs.readFileSync(filePath)
+            const subject_id = parseInt(file.split("P")[1].split(".")[0])
+
+            const data = new Missingness({
+                data_type: "partner_annotations",
+                data: stringJson.toString(),
+                dataset_name: EMOCON,
+                subject_id,
+            })
+            await Missingness.create(data);
+            // console.log(data)
+        });
+
+    });
+
+    const selfPath = path.join(statistic, 'self_annotations')
+    fs.readdir(selfPath, function (err, files) {
+        files?.forEach(async function (file) {
+            const filePath = path.join(selfPath, file)
+            const stringJson = fs.readFileSync(filePath)
+            const subject_id = parseInt(file.split("P")[1].split(".")[0])
+
+            const data = new Missingness({
+                data_type: "self_annotations",
+                data: stringJson.toString(),
+                dataset_name: EMOCON,
+                subject_id,
+            })
+            await Missingness.create(data);
+            // console.log(data)
+        });
+
+    });
+
+    const externalPath = path.join(statistic, 'external_annotations')
+    fs.readdir(externalPath, function (err, files) {
+        files?.forEach(async function (file) {
+            const filePath = path.join(externalPath, file)
+            const stringJson = fs.readFileSync(filePath)
+            const subject_id = parseInt(file.replace("P", "").split(".")[0])
+            const external_id = parseInt(file.split(".R")[1])
+
+            const data = new Missingness({
+                data_type: `external_annotations_${external_id}`,
+                data: stringJson.toString(),
+                dataset_name: EMOCON,
+                subject_id,
+            })
+            await Missingness.create(data);
             // console.log(data)
         });
 
@@ -628,5 +715,6 @@ module.exports = {
     importSelfAnnotation,
     importPartnerAnnotation,
     importExternalAnnotation,
-    importWithinDistribution
+    importWithinDistribution,
+    importMissingness
 }

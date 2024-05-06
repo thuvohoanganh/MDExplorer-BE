@@ -15,6 +15,8 @@ router.get('/between-distribution', importController.importBetweenDistribution);
 
 router.get('/within-distribution', importController.importWithinDistribution);
 
+router.get('/missingness', importController.importMissingness);
+
 router.get('/update-dataset-name', importController.addField);
 
 router.get('/remove-column', importController.removeColumn);
