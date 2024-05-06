@@ -13,6 +13,8 @@ router.get('/gather_within_distribution', importController.gatherWithin);
 
 router.get('/between-distribution', importController.importBetweenDistribution);
 
+router.get('/within-distribution', importController.importWithinDistribution);
+
 router.get('/update-dataset-name', importController.addField);
 
 router.get('/remove-column', importController.removeColumn);

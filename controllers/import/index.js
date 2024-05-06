@@ -5,6 +5,7 @@ const path = require('path');
 
 const Metadata = require('../../models/metadata');
 const BetweenDistribution = require('../../models/between-distribution')
+const WithinDistribution = require('../../models/within-distribution')
 const Video = require('../../models/video');
 const { SUBJECT_IDS } = require('../../constant')
 
@@ -206,16 +207,111 @@ const importMetadata = async (req, res, next) => {
 const importBetweenDistribution = async (req, res, next) => {
     const statistic = path.join(__dirname, '..', '..', 'dataset', 'statistic', 'between_distribution');
 
-    folders.forEach(async (data_type) => {
-        const filePath = path.join(statistic, data_type + ".json")
-        const stringJson = fs.readFileSync(filePath)
-        const data = new BetweenDistribution({
-            data_type: data_type,
-            data: stringJson.toString(),
-            dataset_name: EMOCON,
+    [folders,
+        'external_annotations', 'partner_annotations', 'self_annotations'].forEach(async (data_type) => {
+            const filePath = path.join(statistic, data_type + ".json")
+            const stringJson = fs.readFileSync(filePath)
+            const data = new BetweenDistribution({
+                data_type: data_type,
+                data: stringJson.toString(),
+                dataset_name: EMOCON,
+            })
+            await BetweenDistribution.create(data);
         })
-        await BetweenDistribution.create(data);
+
+    res.status(201).json({
+        data: "import success"
     })
+}
+
+const importWithinDistribution = async (req, res, next) => {
+    const statistic = path.join(__dirname, '..', '..', 'dataset', 'statistic', 'within_distrubution');
+
+    folders.forEach(async (folder) => {
+        const folderPath = path.join(statistic, folder)
+        try {
+            fs.readdir(folderPath, function (err, files) {
+                files?.forEach(async function (file) {
+                    const filePath = path.join(folderPath, file)
+                    const stringJson = fs.readFileSync(filePath)
+                    const subject_id = parseInt(file.replace(`${folder}_`, "").replace(".json", ""))
+                    const data = new WithinDistribution({
+                        data_type: folder,
+                        data: stringJson.toString(),
+                        dataset_name: EMOCON,
+                        subject_id,
+                    })
+                    await WithinDistribution.create(data);
+                    console.log(data)
+                });
+            });
+        } catch{(err) => {
+            console.log(err)
+        }}
+
+    })
+
+    ['external_annotations',
+        'partner_annotations',
+        'self_annotations']
+
+    const partnerPath = path.join(statistic, 'partner_annotations')
+    fs.readdir(partnerPath, function (err, files) {
+        files?.forEach(async function (file) {
+            const filePath = path.join(partnerPath, file)
+            const stringJson = fs.readFileSync(filePath)
+            const subject_id = parseInt(file.split("_")[1])
+
+            const data = new WithinDistribution({
+                data_type: "partner_annotations",
+                data: stringJson.toString(),
+                dataset_name: EMOCON,
+                subject_id,
+            })
+            await WithinDistribution.create(data);
+            // console.log(subject_id)
+        });
+
+    });
+
+    const selfPath = path.join(statistic, 'self_annotations')
+    fs.readdir(selfPath, function (err, files) {
+        files?.forEach(async function (file) {
+            const filePath = path.join(selfPath, file)
+            const stringJson = fs.readFileSync(filePath)
+            const subject_id = parseInt(file.split("_")[1])
+
+            const data = new WithinDistribution({
+                data_type: "self_annotations",
+                data: stringJson.toString(),
+                dataset_name: EMOCON,
+                subject_id,
+            })
+            await WithinDistribution.create(data);
+            // console.log(data)
+        });
+
+    });
+
+    const externalPath = path.join(statistic, 'external_annotations')
+    fs.readdir(externalPath, function (err, files) {
+        files?.forEach(async function (file) {
+            const filePath = path.join(externalPath, file)
+            const stringJson = fs.readFileSync(filePath)
+            const subject_id = parseInt(file.split("_")[1])
+            const external_id = parseInt(file.split(".R")[1].split("_")[0])
+
+            const data = new WithinDistribution({
+                data_type: `external_annotations_${external_id}`,
+                data: stringJson.toString(),
+                dataset_name: EMOCON,
+                subject_id,
+            })
+            await WithinDistribution.create(data);
+            // console.log(data)
+        });
+
+    });
 
     res.status(201).json({
         data: "import success"
@@ -225,7 +321,7 @@ const importBetweenDistribution = async (req, res, next) => {
 const addField = async (req, res, next) => {
     const dataset_name = EMOCON
     try {
-        const update = await BetweenDistribution.updateMany(
+        const update = await WithinDistribution.updateMany(
             {},
             {
                 dataset_name
@@ -531,5 +627,6 @@ module.exports = {
     removeColumn,
     importSelfAnnotation,
     importPartnerAnnotation,
-    importExternalAnnotation
+    importExternalAnnotation,
+    importWithinDistribution
 }
