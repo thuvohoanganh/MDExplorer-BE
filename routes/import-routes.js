@@ -19,6 +19,10 @@ router.get('/remove-column', importController.removeColumn);
 
 router.post('/video', importController.importVideo);
 
-router.get('/sel-annotations/', importController.importSelfAnnotation);
+router.get('/self-annotations/', importController.importSelfAnnotation);
+
+router.get('/partner-annotations/', importController.importPartnerAnnotation);
+
+router.get('/external-annotations/', importController.importExternalAnnotation);
 
 module.exports = router;

@@ -286,7 +286,7 @@ const removeColumn = async (req, res, next) => {
                     const stringJson = fs.readFileSync(filePath)
                     // const newString = stringJson.toString().replaceAll(",pid,", ",").replaceAll(",device_serial,device_number,", ",").replaceAll(`,${subject_id},`, ",").replaceAll(",A01A3A,5,", ",")
                     const newString = stringJson.toString().replaceAll(",A01525,", ",").replaceAll(",A013E1,", ",")
-                    
+
                     fs.writeFile(filePath, newString, (error) => {
                         if (error) {
                             console.log('An error has occurred ', error);
@@ -344,36 +344,172 @@ const importSelfAnnotation = async (req, res, next) => {
                     subject_id,
                     columns: header,
                     rows,
-                    data_type: file.replace('.csv', '')
+                    data_type: "self_annotations",
+                    dataset_name: EMOCON
                 })
 
                 if (i === files.length - 1) {
                     console.log(returnData)
 
+                    const csvList = returnData.map(e => {
+                        return new Csv({
+                            dataset_name: EMOCON,
+                            category: e.category,
+                            subject_id: e.subject_id,
+                            columns: JSON.stringify(e.columns),
+                            rows: JSON.stringify(e.rows),
+                            data_type: e.data_type,
+                        })
+                    })
+                    Csv.create(csvList);
+
                     res.status(200).json({
-                        data: returnData
+                        data: Csv
                     });
                 }
             });
         });
-        
+    } catch (err) {
+        console.log(err)
+        const error = new HttpError(
+            'import fail',
+            500
+        );
+        return next(error);
+    }
+}
 
-        // const csvList = data.map(datatype => {
-        //     return new Csv({
-        //         dataset_name: EMOCON,
-        //         category: datatype.category,
-        //         subject_id: datatype.subject_id,
-        //         columns: JSON.stringify(datatype.columns),
-        //         rows: JSON.stringify(datatype.rows),
-        //         data_type: datatype.data_type,
-        //         missingness: JSON.stringify(missingness?.[datatype.data_type]?.[subject_id]),
-        //         within_distribution: JSON.stringify(within_distrubution?.[datatype.data_type]?.[subject_id])
-        //     })
-        // })
-        // await Csv.create(csvList);
-        // res.status(200).json({
-        //     data: "success"
-        // });
+const importPartnerAnnotation = async (req, res, next) => {
+    const dataset_path = path.join(__dirname, '..', '..', 'dataset', 'partner_annotations');
+    const returnData = []
+    try {
+        fs.readdir(dataset_path, function (err, files) {
+            files?.forEach(function (file, i) {
+                const filePath = path.join(dataset_path, file)
+                const csv = fs.readFileSync(filePath)
+                const array = csv.toString().trim().split(/\r?\n|\r/);
+                const header = array[0].trim().split(",");
+                const rows = []
+
+                for (let i = 1; i < array.length; i++) {
+                    const currentLine = array[i].split(",");
+
+                    if (currentLine.length === header.length) {
+                        const row = {};
+                        for (let j = 0; j < header.length; j++) {
+                            let value = currentLine[j].trim()
+                            if (isNaN(value)) {
+                                row[header[j].trim()] = value;
+                            } else {
+                                row[header[j].trim()] = parseFloat(value);
+                            }
+                        }
+                        rows.push(row);
+                    }
+                }
+
+                const subject_id = parseInt(file.replace("P", "").replace(".partner.csv", ""))
+
+                returnData.push({
+                    category: "label",
+                    subject_id,
+                    columns: header,
+                    rows,
+                    data_type: "partner_annotations",
+                    dataset_name: EMOCON
+                })
+
+                if (i === files.length - 1) {
+                    const csvList = returnData.map(e => {
+                        return new Csv({
+                            dataset_name: e.dataset_name,
+                            category: e.category,
+                            subject_id: e.subject_id,
+                            columns: JSON.stringify(e.columns),
+                            rows: JSON.stringify(e.rows),
+                            data_type: e.data_type,
+                        })
+                    })
+                    Csv.create(csvList);
+
+                    res.status(200).json({
+                        data: Csv
+                    });
+                }
+            });
+        });
+    } catch (err) {
+        console.log(err)
+        const error = new HttpError(
+            'import fail',
+            500
+        );
+        return next(error);
+    }
+}
+
+const importExternalAnnotation = async (req, res, next) => {
+    const dataset_path = path.join(__dirname, '..', '..', 'dataset', 'external_annotations');
+    const returnData = []
+    try {
+        fs.readdir(dataset_path, function (err, files) {
+            files?.forEach(function (file, i) {
+                const filePath = path.join(dataset_path, file)
+                const csv = fs.readFileSync(filePath)
+                const array = csv.toString().trim().split(/\r?\n|\r/);
+                const header = array[0].trim().split(",");
+                const rows = []
+
+                for (let i = 1; i < array.length; i++) {
+                    const currentLine = array[i].split(",");
+
+                    if (currentLine.length === header.length) {
+                        const row = {};
+                        for (let j = 0; j < header.length; j++) {
+                            let value = currentLine[j].trim()
+                            if (isNaN(value)) {
+                                row[header[j].trim()] = value;
+                            } else {
+                                row[header[j].trim()] = parseFloat(value);
+                            }
+                        }
+                        rows.push(row);
+                    }
+                }
+
+                const subject_id = parseInt(file.split(".R")[0].replace("P", ""))
+                const external = file.split(".R")[1].replace(".csv", "")
+                // console.log(`subject_id ${subject_id}`)
+                // console.log(`external_annotations_${external}`)
+                // console.log(`--------------------------------`)
+                returnData.push({
+                    category: "label",
+                    subject_id,
+                    columns: header,
+                    rows,
+                    data_type: `external_annotations_${external}`,
+                    dataset_name: EMOCON
+                })
+
+                if (i === files.length - 1) {
+                    const csvList = returnData.map(e => {
+                        return new Csv({
+                            dataset_name: e.dataset_name,
+                            category: e.category,
+                            subject_id: e.subject_id,
+                            columns: JSON.stringify(e.columns),
+                            rows: JSON.stringify(e.rows),
+                            data_type: e.data_type,
+                        })
+                    })
+                    Csv.create(csvList);
+
+                    res.status(200).json({
+                        data: csvList
+                    });
+                }
+            });
+        });
     } catch (err) {
         console.log(err)
         const error = new HttpError(
@@ -393,5 +529,7 @@ module.exports = {
     addField,
     importVideo,
     removeColumn,
-    importSelfAnnotation
+    importSelfAnnotation,
+    importPartnerAnnotation,
+    importExternalAnnotation
 }

@@ -8,7 +8,7 @@ const getSubjectMultiModalData = async (req, res, next) => {
     const subject_id = parseInt(req.body.subject_id || -1)
     const dataset_name = req.body.dataset_name
 
-    if (!subject_id || !SUBJECT_IDS?.[dataset_name].includes(subject_id)) {
+    if (!subject_id) {
         const error = new HttpError(
             'Could not find subject with given subject_id and dataset_name ',
             500
@@ -86,7 +86,7 @@ const getVideo = async (req, res, next) => {
     const subject_id = req.body.subject_id
     const dataset_name = req.body.dataset_name
 
-    if (!subject_id || !SUBJECT_IDS?.[dataset_name].includes(subject_id)) {
+    if (!subject_id) {
         const error = new HttpError(
             'Could not find subject with this id ' + req.params.subject_id,
             500
@@ -115,7 +115,7 @@ const getStatistic = async (req, res, next) => {
     const data_type = req.body.data_type
     const dataset_name = req.body.dataset_name
 
-    if (!subject_id || !SUBJECT_IDS?.[dataset_name].includes(subject_id)) {
+    if (!subject_id) {
         const error = new HttpError(
             'Could not find subject with this subject_id',
             500
