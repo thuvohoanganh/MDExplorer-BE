@@ -7,9 +7,7 @@ router.post('/metadata', importController.importMetadata);
 
 router.get('/subject/:subject_id', importController.importData);
 
-router.get('/gather_missingness', importController.gatherMissing);
-
-router.get('/gather_within_distribution', importController.gatherWithin);
+router.get('/neuro-sky-data', importController.importNeuroSkyData);
 
 router.get('/between-distribution', importController.importBetweenDistribution);
 
@@ -17,7 +15,7 @@ router.get('/within-distribution', importController.importWithinDistribution);
 
 router.get('/missingness', importController.importMissingness);
 
-router.get('/update-dataset-name', importController.addField);
+router.get('/update-dataset-name', importController.removeField);
 
 router.get('/remove-column', importController.removeColumn);
 
