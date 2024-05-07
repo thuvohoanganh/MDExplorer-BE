@@ -9,6 +9,7 @@ const Missingness = require('../../models/missingness');
 const getSubjectMultiModalData = async (req, res, next) => {
     const subject_id = parseInt(req.body.subject_id || -1)
     const dataset_name = req.body.dataset_name
+    const datatypes = req.body.data_types
 
     if (!subject_id) {
         const error = new HttpError(
@@ -30,7 +31,7 @@ const getSubjectMultiModalData = async (req, res, next) => {
     }
 
     try {
-        const csv = await Csv.find({ subject_id, dataset_name });
+        const csv = await Csv.find({ subject_id, dataset_name, data_type: { $in: datatypes }  });
         
         csv.forEach((csv) => {
             const data = {
