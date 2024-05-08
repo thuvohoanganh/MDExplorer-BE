@@ -31,7 +31,15 @@ const getSubjectMultiModalData = async (req, res, next) => {
     }
 
     try {
-        const csv = await Csv.find({ subject_id, dataset_name, data_type: { $in: datatypes }  });
+        const filter = datatypes? ({ 
+                subject_id, 
+                dataset_name, 
+                data_type: { $in: datatypes }
+            }) : ({
+                subject_id, 
+                dataset_name,
+            })
+        const csv = await Csv.find(filter);
         
         csv.forEach((csv) => {
             const data = {
