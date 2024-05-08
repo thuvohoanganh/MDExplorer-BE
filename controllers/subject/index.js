@@ -174,6 +174,7 @@ const getStatistic = async (req, res, next) => {
 const getOneDataType = async (req, res, next) => {
     const data_type = req.body.data_type
     const dataset_name = req.body.dataset_name
+    const subject_ids = req.body.subject_ids
 
     try {
         const returnData = {
@@ -184,24 +185,30 @@ const getOneDataType = async (req, res, next) => {
             data: [],
             dataset_name
         }
-        const csvList = await Csv.find({ data_type, dataset_name });
-        if (csvList.lenght === 0) {
-            throw ("Can not find given data_type and dataset_name")
-        }
 
-        returnData.category = csvList[0].category
-        returnData.columns = JSON.parse(csvList[0].columns)
-
-        csvList.forEach((csv) => {
-            if (!returnData.subjects.includes(csv.subject_id)) {
-                returnData.subjects.push(csv.subject_id)
-            }
-
-            returnData.data.push({
-                subject_id: csv.subject_id,
-                rows: JSON.parse(csv.rows)
-            })
+        const filter = subject_ids? ({ 
+            data_type, dataset_name, subject_id: { $in: subject_ids }
+        }) : ({
+            data_type, dataset_name,
         })
+
+        const csvList = await Csv.find(filter);
+
+        if (csvList.length > 0) {
+            returnData.category = csvList[0].category || ""
+            returnData.columns = JSON.parse(csvList[0].columns)
+    
+            csvList.forEach((csv) => {
+                if (!returnData.subjects.includes(csv.subject_id)) {
+                    returnData.subjects.push(csv.subject_id)
+                }
+    
+                returnData.data.push({
+                    subject_id: csv.subject_id,
+                    rows: JSON.parse(csv.rows)
+                })
+            })
+        }
 
         res.status(200).json({
             data: returnData
