@@ -10,11 +10,6 @@ const Video = require('../../models/video');
 const Missingness = require('../../models/missingness');
 const { SUBJECT_IDS } = require('../../constant')
 
-const missingness = []
-const within_distrubution = []
-// const missingness = require('../../dataset/statistic/missingness/missingness.json')
-// const within_distrubution = require('../../dataset/statistic/within_distrubution/within_distribution.json')
-
 const folders = ['Attention', 'BrainWave', 'E4_ACC', 'E4_BVP', 'E4_EDA', 'E4_HR', 'E4_IBI', 'E4_TEMP', 'Meditation', 'Polar_HR']
 const { EMOCON } = require('../../constant')
 
@@ -33,8 +28,6 @@ const importData = async (req, res, next) => {
                 columns: JSON.stringify(datatype.columns),
                 rows: JSON.stringify(datatype.rows),
                 data_type: datatype.data_type,
-                missingness: JSON.stringify(missingness?.[datatype.data_type]?.[subject_id]),
-                within_distribution: JSON.stringify(within_distrubution?.[datatype.data_type]?.[subject_id])
             })
         })
         // console.log(csvList)

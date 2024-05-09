@@ -1,7 +1,7 @@
 const importKEmoCon = require('./kemocon')
-// const importKEmoPhone = require('./kemocon')
+const importKEmoPhone = require('./kemophone')
 
 module.exports = {
-    ...importKEmoCon,
-    // ...importKEmoPhone
+    kemocon: {...importKEmoCon},
+    kemophone: { ...importKEmoPhone }
 }
