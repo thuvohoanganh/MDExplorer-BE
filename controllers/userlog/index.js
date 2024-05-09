@@ -24,6 +24,15 @@ const submitLog = async (req, res, next) => {
     }
 }
 
-module.exports = {
-    submitLog
+const getUserLogs = async (req, res, next) => {
+    const logs = await UserLog.find({});
+    res.status(200).json({
+        data: logs
+    })
 }
+
+module.exports = {
+    submitLog,
+    getUserLogs
+}
+
