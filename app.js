@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
+const userLogRoutes = require('./routes/userlog-routes');
 const importRoutes = require('./routes/import-routes');
 const datatypeRoutes = require('./routes/datatype-routes');
 const subjectRoutes = require('./routes/subject-routes');
@@ -33,6 +34,7 @@ app.use((req, res, next) => {
 app.use('/api/subject', subjectRoutes);
 app.use('/api/datatype', datatypeRoutes);
 app.use('/api/import', importRoutes);
+app.use('/api/user-log', userLogRoutes);
 
 
 app.use((req, res, next) => {
