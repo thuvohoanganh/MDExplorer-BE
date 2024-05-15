@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const CsvSchema = new mongoose.Schema({
+const FileSchema = new mongoose.Schema({
     dataset_name: {
         type: String,
         required: true,
@@ -17,16 +17,18 @@ const CsvSchema = new mongoose.Schema({
         type: String, 
         required: true
     },
-    rows: {
-        type: String, 
+    chunk_qty: {
+        type: Number,
+        required: true
+    },
+    sample_size: {
+        type: Number,
         required: true
     },
     category: {
         type: String, 
-        required: true,
-        enum: ['sensor', 'label']
     },
     createdAt: { type: Date, default: Date.now },
 })
 
-module.exports = mongoose.model('Csv', CsvSchema);
+module.exports = mongoose.model('file', FileSchema);

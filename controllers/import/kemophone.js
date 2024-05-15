@@ -1,71 +1,86 @@
 
 const HttpError = require('../../models/http-error');
-const Csv = require('../../models/csv');
+const File = require('../../models/file');
+const FileChunk = require('../../models/file-chunk');
 const fs = require('fs');
 const path = require('path');
 const Metadata = require('../../models/metadata');
 const BetweenDistribution = require('../../models/between-distribution')
 const WithinDistribution = require('../../models/within-distribution')
 const Missingness = require('../../models/missingness');
-const { EMOPHONE } = require('../../constant')
+const { EMOPHONE, EMOCON } = require('../../constant')
 
-const convertCsvToJSON = async (filePath) => {
+const convertCsvToJSON = async (filePath, subject_id_string, data_type) => {
     const csv = fs.readFileSync(filePath)
     const array = csv.toString().trim().split(/\r?\n|\r/);
     const header = array[0].trim().split(",");
-    const rows = []
+    const sample_size = array.length - 1
+    const chunk_size = 10000
+    const chunk_qty = Math.ceil(sample_size/chunk_size)
 
-    for (let i = 1; i < array.length; i++) {
-        const currentLine = array[i].split(",");
+    const file = new File({
+        dataset_name: EMOPHONE,
+        category: "sensor",
+        subject_id: parseInt(subject_id_string),
+        columns: JSON.stringify(header),
+        data_type: data_type,
+        chunk_qty,
+        sample_size
+    })
+    console.log(file)
+    await File.create(file);
 
-        if (currentLine.length === header.length) {
-            const row = {};
-            for (let j = 0; j < header.length; j++) {
-                let value = currentLine[j].trim()
-                if (isNaN(value)) {
-                    row[header[j].trim()] = value;
-                } else {
-                    row[header[j].trim()] = parseFloat(value);
+    try {
+    for (let chunk_id = 0; chunk_id < chunk_qty; chunk_id++) {
+            let chunk_rows = []
+            for (let i = (chunk_id)*chunk_size+1; i <= Math.min((chunk_id+1)*chunk_size, sample_size); i++) {
+                const currentLine = array[i].split(",");
+
+                if (currentLine.length === header.length) {
+                    const row = {};
+                    for (let j = 0; j < header.length; j++) {
+                        let value = currentLine[j].trim()
+                        if (isNaN(value)) {
+                            row[header[j].trim()] = value;
+                        } else {
+                            row[header[j].trim()] = parseFloat(value);
+                        }
+                    }
+                    chunk_rows.push(row);
                 }
             }
-            rows.push(row);
-        }
-    }
 
-    return ({
-        category: "sensor",
-        columns: header,
-        rows,
-    })
+            const fileChunk = new FileChunk({
+                file_id: file.toObject()._id,
+                chunk_id: chunk_id,
+                rows: JSON.stringify(chunk_rows),
+            })
+
+            await FileChunk.create(fileChunk); 
+            console.log(chunk_id)
+        }
+    } catch(err) {
+        console.log(err)
+        await File.deleteOne({ _id: file.toObject()._id })
+    }
+    
+
+    // return ({
+    //     category: "sensor",
+    //     columns: header,
+    //     chunk_size,
+    //     sample_size,
+    //     chunk_ids: []
+    // })
 }
 
 const importData = async (req, res, next) => {
     const dataset_path = path.join(__dirname, '..', '..', 'k-emophone', 'dataset');
-    const data_type = req.body.data_type
-    fs.readdir(dataset_path, function (err, folders) {
-        folders?.forEach(async function (folder) {
-            try {
-                const file_path = path.join(dataset_path, folder, data_type + ".csv");
-                const data = await convertCsvToJSON(file_path)
-                const subject_id_string = folder.replace("P", "")
-
-                const csv = new Csv({
-                    dataset_name: EMOPHONE,
-                    category: data.category,
-                    subject_id: parseInt(subject_id_string),
-                    columns: JSON.stringify(data.columns),
-                    rows: JSON.stringify(data.rows),
-                    data_type: data_type,
-                })
-
-                // console.log(csv)
-                await Csv.create(csv);
-            } catch (err) {
-                console.log(subject_id_string, data_type)
-                console.log(err)
-            }
-        })
-    })
+    const folder = "P01"
+    const data_type = "ActivityEvent"
+    const subject_id_string = folder.replace("P", "")
+    const file_path = path.join(dataset_path, folder, data_type + ".csv");
+    await convertCsvToJSON(file_path, subject_id_string, data_type)
 
     res.status(200).json({
         data: "success"
@@ -194,16 +209,21 @@ const importMissingness = async (req, res, next) => {
 }
 
 const deleteCsv = async (req, res, next) => {
-    const deleted = await Csv.deleteOne({
-        dataset_name: EMOPHONE,
-        subject_id: 1,
-        data_type: "BatteryEvent"
-    })
-
-    console.log(deleted)
-    res.status(200).json({
-        data: "success"
-    });
+    try {
+        const deleted = await Missingness.countDocuments({
+            dataset_name: EMOCON,
+        })
+    
+        const id = deleted
+        // .map(e => (e.subject_id)).sort((a,b) => a-b)
+        console.log(id)
+        res.status(200).json({
+            data: "success"
+        });
+    }
+    catch{(err) => {
+        console.log(err)
+    }}
 }
 
 module.exports = {
