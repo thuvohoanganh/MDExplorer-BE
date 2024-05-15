@@ -250,40 +250,46 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
             })
         const files = await File.find(filter);
 
-        const promiseList = files.map(() => new Promise((resolve, reject) => {
-
+        const promiseList = files.map((csv) => new Promise(async (resolve, reject) => {
+            try {
+                const chunk_qty = 5
+                const data = {
+                    data_type: "",
+                    columns: [],
+                    rows: [],
+                    segment_number: 1,
+                    total_segment: 1,
+                    category: "",
+                }
+                if (!returnData.data_types.includes(csv.data_type)) {
+                    returnData.data_types.push(csv.data_type)
+                }
+    
+                data.data_type = csv.data_type
+                data.category = csv.category
+                data.columns = JSON.parse(csv.columns)
+    
+                const total_segment = await FileChunk.find({ file_id: csv._id }).count()
+                data.total_segment = Math.ceil(total_segment/chunk_qty)
+    
+                const fileChunks = await FileChunk.find({ file_id: csv._id }).limit(chunk_qty).sort("chunk_id")
+    
+                fileChunks.forEach(e => {
+                    data.rows = data.rows.concat(JSON.parse(e.rows))
+                })
+    
+                resolve(data)
+            } catch(err) {
+                reject("get data fail")
+            }
         }))
 
-        const getData = async (csv, i) => {
-            const chunk_qty = 3
-            const data = {
-                data_type: "",
-                columns: [],
-                rows: [],
-                segment_number: 1,
-                total_segment: 1,
-                category: "",
-            }
-            if (!returnData.data_types.includes(csv.data_type)) {
-                returnData.data_types.push(csv.data_type)
-            }
+        Promise.all(promiseList).then((values) => {
+            res.status(200).json({
+                data: values
+            });
+        });
 
-            data.data_type = csv.data_type
-            data.category = csv.category
-            data.columns = JSON.parse(csv.columns)
-
-            const total_segment = await FileChunk.find({ file_id: csv._id }).count()
-            data.total_segment = Math.ceil(total_segment/chunk_qty)
-
-            const fileChunks = await FileChunk.find({ file_id: csv._id }).limit(chunk_qty).sort("chunk_id")
-
-            fileChunks.forEach(e => {
-                data.rows = data.rows.concat(JSON.parse(e.rows))
-            })
-
-            returnData.multimodal_data.push(data)
-            console.log(i, returnData.multimodal_data.length)
-        }
     } catch (err) {
         console.log(err)
         const error = new HttpError(
@@ -292,10 +298,6 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
         );
         return next(error);
     }
-
-    res.status(200).json({
-        data: returnData
-    });
 }
 
 module.exports = {
