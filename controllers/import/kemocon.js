@@ -623,12 +623,11 @@ const importExternalAnnotation = async (req, res, next) => {
 
 const importNeuroSkyData = async (req, res, next) => {
     const dataset_path = path.join(__dirname, '..', '..', 'dataset', 'neurosky_polar_data');
-    const returnData = []
     Array.from({ length: 32 }, (_, index) => index + 1).forEach(subject_id => {
         try {
             const folderPath = path.join(dataset_path, subject_id.toString())
             fs.readdir(folderPath, function (err, files) {
-                files?.forEach(function (file, i) {
+                files?.forEach(async function (file, i) {
                     const filePath = path.join(folderPath, file)
                     const csv = fs.readFileSync(filePath)
                     const array = csv.toString().trim().split(/\r?\n|\r/);
@@ -651,32 +650,18 @@ const importNeuroSkyData = async (req, res, next) => {
                             rows.push(row);
                         }
                     }
-
-                    // console.log(`subject_id ${subject_id}`)
-                    returnData.push({
+                    const data_type = file.replace(".csv", "")
+                    const document = new Csv({
+                        dataset_name: EMOCON,
                         category: "sensor",
-                        subject_id,
-                        columns: header,
-                        rows,
-                        data_type: file.replace(".csv", ""),
-                        dataset_name: EMOCON
+                        subject_id: subject_id,
+                        columns: JSON.stringify(header),
+                        rows: JSON.stringify(rows),
+                        data_type: data_type,
                     })
-
-                    if (i === files.length - 1) {
-                        const csvList = returnData.map(e => {
-                            return new Csv({
-                                dataset_name: e.dataset_name,
-                                category: e.category,
-                                subject_id: e.subject_id,
-                                columns: JSON.stringify(e.columns),
-                                rows: JSON.stringify(e.rows),
-                                data_type: e.data_type,
-                            })
-                        })
-                        // console.log(csvList)
-                        // console.log(`--------------------------------`)
-                        Csv.create(csvList);
-                    }
+    
+                    // console.log(document)
+                    await Csv.create(document);
                 });
             });
         } catch (err) {

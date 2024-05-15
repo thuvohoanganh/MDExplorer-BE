@@ -1,17 +1,18 @@
 const HttpError = require('../../models/http-error');
 const Csv = require('../../models/csv');
 const Video = require('../../models/video');
+const File = require('../../models/file');
+const FileChunk = require('../../models/file-chunk');
 const BetweenDistribution = require('../../models/between-distribution');
-const { SUBJECT_IDS } = require('../../constant')
+const { SUBJECT_IDS, EMOPHONE } = require('../../constant')
 const WithinDistribution = require('../../models/within-distribution')
 const Missingness = require('../../models/missingness');
 
 const getSubjectMultiModalData = async (req, res, next) => {
-    const subject_id = parseInt(req.body.subject_id || -1)
     const dataset_name = req.body.dataset_name
-    const datatypes = req.body.data_types
+    const subject_id = parseInt(req.body.subject_id || -1)
 
-    if (!subject_id) {
+    if (subject_id < 0) {
         const error = new HttpError(
             'Could not find subject with given subject_id and dataset_name ',
             500
@@ -19,6 +20,12 @@ const getSubjectMultiModalData = async (req, res, next) => {
         return next(error);
     }
 
+    if (dataset_name === EMOPHONE) {
+        getMultiModalDataEmoPhone(req, res, next)
+        return
+    }
+
+    const datatypes = req.body.data_types
     const returnData = {
         dataset_name,
         subject_id: subject_id,
@@ -221,6 +228,74 @@ const getOneDataType = async (req, res, next) => {
         );
         return next(error);
     }
+}
+
+const getMultiModalDataEmoPhone = async (req, res, next) => {
+    const datatypes = req.body.data_types
+    const subject_id = parseInt(req.body.subject_id)
+    const dataset_name = req.body.dataset_name
+
+    const returnData = {
+        dataset_name,
+        subject_id: subject_id,
+        data_types: [],
+        multimodal_data: []
+    }
+
+    try {
+        const filter = ({
+                subject_id, 
+                dataset_name,
+                data_type: { $in: datatypes }
+            })
+        const files = await File.find(filter);
+
+        const promiseList = files.map(() => new Promise((resolve, reject) => {
+
+        }))
+
+        const getData = async (csv, i) => {
+            const chunk_qty = 3
+            const data = {
+                data_type: "",
+                columns: [],
+                rows: [],
+                segment_number: 1,
+                total_segment: 1,
+                category: "",
+            }
+            if (!returnData.data_types.includes(csv.data_type)) {
+                returnData.data_types.push(csv.data_type)
+            }
+
+            data.data_type = csv.data_type
+            data.category = csv.category
+            data.columns = JSON.parse(csv.columns)
+
+            const total_segment = await FileChunk.find({ file_id: csv._id }).count()
+            data.total_segment = Math.ceil(total_segment/chunk_qty)
+
+            const fileChunks = await FileChunk.find({ file_id: csv._id }).limit(chunk_qty).sort("chunk_id")
+
+            fileChunks.forEach(e => {
+                data.rows = data.rows.concat(JSON.parse(e.rows))
+            })
+
+            returnData.multimodal_data.push(data)
+            console.log(i, returnData.multimodal_data.length)
+        }
+    } catch (err) {
+        console.log(err)
+        const error = new HttpError(
+            "Parse data fail",
+            500
+        );
+        return next(error);
+    }
+
+    res.status(200).json({
+        data: returnData
+    });
 }
 
 module.exports = {
