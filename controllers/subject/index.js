@@ -38,16 +38,16 @@ const getSubjectMultiModalData = async (req, res, next) => {
     }
 
     try {
-        const filter = datatypes? ({ 
-                subject_id, 
-                dataset_name, 
-                data_type: { $in: datatypes }
-            }) : ({
-                subject_id, 
-                dataset_name,
-            })
+        const filter = datatypes ? ({
+            subject_id,
+            dataset_name,
+            data_type: { $in: datatypes }
+        }) : ({
+            subject_id,
+            dataset_name,
+        })
         const csv = await Csv.find(filter);
-        
+
         csv.forEach((csv) => {
             const data = {
                 data_type: "",
@@ -165,7 +165,7 @@ const getStatistic = async (req, res, next) => {
             returnData.missingness = JSON.parse(missingness.data)
         }
 
-        res.status(200).json({  
+        res.status(200).json({
             data: returnData
         })
     } catch (err) {
@@ -183,6 +183,11 @@ const getOneDataType = async (req, res, next) => {
     const dataset_name = req.body.dataset_name
     const subject_ids = req.body.subject_ids
 
+    if (dataset_name === EMOPHONE) {
+        getOneDataTypeEmoPhone(req, res, next)
+        return
+    }
+
     try {
         const returnData = {
             data_type: data_type,
@@ -193,7 +198,7 @@ const getOneDataType = async (req, res, next) => {
             dataset_name
         }
 
-        const filter = subject_ids? ({ 
+        const filter = subject_ids ? ({
             data_type, dataset_name, subject_id: { $in: subject_ids }
         }) : ({
             data_type, dataset_name,
@@ -204,12 +209,12 @@ const getOneDataType = async (req, res, next) => {
         if (csvList.length > 0) {
             returnData.category = csvList[0].category || ""
             returnData.columns = JSON.parse(csvList[0].columns)
-    
+
             csvList.forEach((csv) => {
                 if (!returnData.subjects.includes(csv.subject_id)) {
                     returnData.subjects.push(csv.subject_id)
                 }
-    
+
                 returnData.data.push({
                     subject_id: csv.subject_id,
                     rows: JSON.parse(csv.rows)
@@ -246,10 +251,10 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
 
     try {
         const filter = ({
-                subject_id, 
-                dataset_name,
-                data_type: { $in: datatypes }
-            })
+            subject_id,
+            dataset_name,
+            data_type: { $in: datatypes }
+        })
         const files = await File.find(filter);
 
         const promiseList = files.map((csv) => new Promise(async (resolve, reject) => {
@@ -263,19 +268,19 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
                 if (!returnData.data_types.includes(csv.data_type)) {
                     returnData.data_types.push(csv.data_type)
                 }
-    
+
                 data.data_type = csv.data_type
                 data.category = csv.category
                 data.columns = JSON.parse(csv.columns)
-        
-                const fileChunks = await FileChunk.find({ 
+
+                const fileChunks = await FileChunk.find({
                     file_id: csv._id,
-                    start_timestamp: { $gte: from, $lte: to }, 
+                    start_timestamp: { $gte: from, $lte: to },
                 }).sort("chunk_id")
-    
+
                 fileChunks.forEach(chunk => {
                     const rows = JSON.parse(chunk.rows)
-                    for(let i = 0; i < rows.length; i++) {
+                    for (let i = 0; i < rows.length; i++) {
                         let currentRow = rows[i]
                         if (currentRow.timestamp > to) {
                             break
@@ -285,7 +290,7 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
                 })
 
                 resolve(data)
-            } catch(err) {
+            } catch (err) {
                 reject("get data fail")
             }
         }))
@@ -301,6 +306,89 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
         console.log(err)
         const error = new HttpError(
             "Parse data fail",
+            500
+        );
+        return next(error);
+    }
+}
+
+const getOneDataTypeEmoPhone = async (req, res, next) => {
+    const data_type = req.body.data_type
+    const dataset_name = req.body.dataset_name
+    const from = req.body.from
+    const to = req.body.to
+    const subject_ids = req.body.subject_ids
+
+    try {
+        const returnData = {
+            data_type: data_type,
+            category: "",
+            subjects: [],
+            columns: [],
+            data: [],
+            dataset_name,
+            from,
+            to
+        }
+
+        const filter = subject_ids ? ({
+            data_type, dataset_name, subject_id: { $in: subject_ids }
+        }) : ({
+            data_type, dataset_name,
+        })
+
+        const csvList = await File.find(filter);
+
+        if (csvList.length > 0) {
+            returnData.category = csvList[0].category || ""
+            returnData.columns = JSON.parse(csvList[0].columns)
+
+            const promiseList = csvList.map((csv) => {
+                if (!returnData.subjects.includes(csv.subject_id)) {
+                    returnData.subjects.push(csv.subject_id)
+                }
+
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        const data = {
+                            subject_id: csv.subject_id,
+                            rows: [],
+                        }
+
+                        const fileChunks = await FileChunk.find({
+                            file_id: csv._id,
+                            start_timestamp: { $gte: from, $lte: to },
+                        }).sort("chunk_id")
+
+                        fileChunks.forEach(chunk => {
+                            const rows = JSON.parse(chunk.rows)
+                            for (let i = 0; i < rows.length; i++) {
+                                let currentRow = rows[i]
+                                if (currentRow.timestamp > to) {
+                                    break
+                                }
+                                data.rows.push(currentRow)
+                            }
+                        })
+
+                        resolve(data)
+                    } catch (err) {
+                        reject("get data fail")
+                    }
+                })
+            })
+
+            Promise.all(promiseList).then((values) => {
+                returnData.data = values
+                res.status(200).json({
+                    data: returnData
+                });
+            });
+        }
+    } catch (err) {
+        console.log(err)
+        const error = new HttpError(
+            "Get data type fail",
             500
         );
         return next(error);
