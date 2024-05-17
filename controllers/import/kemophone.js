@@ -70,7 +70,8 @@ const convertCsvToJSON = async (filePath, subject_id_string, data_type) => {
 
 const importData = async (req, res, next) => {
     const dataset_path = path.join(__dirname, '..', '..', 'k-emophone', 'dataset');
-    const data_type = "ActivityTransition"
+    const data_type = "WiFi"
+    // const folder = 'P80'
     try {
         fs.readdir(dataset_path, function (err, folders) {
             folders?.forEach(async function (folder) {
