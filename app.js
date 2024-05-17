@@ -10,6 +10,8 @@ const HttpError = require('./models/http-error');
 const bodyParse = require('body-parser');
 const app = express();
 
+require('dotenv').config()
+
 const corsOptions = {
   origin: 'http://localhost:3000/',
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
@@ -56,7 +58,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .set('strictQuery', false)
-  .connect('mongodb+srv://everly:xanhduong@elearning.whpyx.mongodb.net/multimodal-data?retryWrites=true&w=majority')
+  .connect(`mongodb://${process.env.MONGODB_ICLAB_USERNAME}:${encodeURIComponent(process.env.MONGODB_ICLAB_PASSWORD)}@deploy.iclab.dev:6000/abc`)
   .then(() => {
     app.listen(process.env.PORT || 8000);
     console.log("Connect database successfully");

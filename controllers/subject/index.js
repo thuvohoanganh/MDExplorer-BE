@@ -234,6 +234,8 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
     const datatypes = req.body.data_types
     const subject_id = parseInt(req.body.subject_id)
     const dataset_name = req.body.dataset_name
+    const from = req.body.from
+    const to = req.body.to
 
     const returnData = {
         dataset_name,
@@ -252,13 +254,10 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
 
         const promiseList = files.map((csv) => new Promise(async (resolve, reject) => {
             try {
-                const chunk_qty = 5
                 const data = {
                     data_type: "",
                     columns: [],
                     rows: [],
-                    segment_number: 1,
-                    total_segment: 1,
                     category: "",
                 }
                 if (!returnData.data_types.includes(csv.data_type)) {
@@ -268,16 +267,23 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
                 data.data_type = csv.data_type
                 data.category = csv.category
                 data.columns = JSON.parse(csv.columns)
+        
+                const fileChunks = await FileChunk.find({ 
+                    file_id: csv._id,
+                    start_timestamp: { $gte: from, $lte: to }, 
+                }).sort("chunk_id")
     
-                const total_segment = await FileChunk.find({ file_id: csv._id }).count()
-                data.total_segment = Math.ceil(total_segment/chunk_qty)
-    
-                const fileChunks = await FileChunk.find({ file_id: csv._id }).limit(chunk_qty).sort("chunk_id")
-    
-                fileChunks.forEach(e => {
-                    data.rows = data.rows.concat(JSON.parse(e.rows))
+                fileChunks.forEach(chunk => {
+                    const rows = JSON.parse(chunk.rows)
+                    for(let i = 0; i < rows.length; i++) {
+                        let currentRow = rows[i]
+                        if (currentRow.timestamp > to) {
+                            break
+                        }
+                        data.rows.push(currentRow)
+                    }
                 })
-    
+
                 resolve(data)
             } catch(err) {
                 reject("get data fail")
@@ -285,8 +291,9 @@ const getMultiModalDataEmoPhone = async (req, res, next) => {
         }))
 
         Promise.all(promiseList).then((values) => {
+            returnData.multimodal_data = values
             res.status(200).json({
-                data: values
+                data: returnData
             });
         });
 

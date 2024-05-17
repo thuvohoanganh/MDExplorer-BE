@@ -4,7 +4,6 @@ const File = require('../../models/file');
 const FileChunk = require('../../models/file-chunk');
 const fs = require('fs');
 const path = require('path');
-const Metadata = require('../../models/metadata');
 const BetweenDistribution = require('../../models/between-distribution')
 const WithinDistribution = require('../../models/within-distribution')
 const Missingness = require('../../models/missingness');
@@ -27,7 +26,7 @@ const convertCsvToJSON = async (filePath, subject_id_string, data_type) => {
         chunk_qty,
         sample_size
     })
-    console.log(file)
+    // console.log(file)
     await File.create(file);
 
     try {
@@ -50,37 +49,40 @@ const convertCsvToJSON = async (filePath, subject_id_string, data_type) => {
                 }
             }
 
+            const end_timestamp = chunk_rows[chunk_rows.length-1]?.timestamp || 0
+            const start_timestamp = chunk_rows[0].timestamp || 0
+
             const fileChunk = new FileChunk({
                 file_id: file.toObject()._id,
                 chunk_id: chunk_id,
                 rows: JSON.stringify(chunk_rows),
+                end_timestamp,
+                start_timestamp
             })
 
             await FileChunk.create(fileChunk); 
-            console.log(chunk_id)
         }
     } catch(err) {
         console.log(err)
         await File.deleteOne({ _id: file.toObject()._id })
     }
-    
-
-    // return ({
-    //     category: "sensor",
-    //     columns: header,
-    //     chunk_size,
-    //     sample_size,
-    //     chunk_ids: []
-    // })
 }
 
 const importData = async (req, res, next) => {
     const dataset_path = path.join(__dirname, '..', '..', 'k-emophone', 'dataset');
-    const folder = "P01"
-    const data_type = "ActivityEvent"
-    const subject_id_string = folder.replace("P", "")
-    const file_path = path.join(dataset_path, folder, data_type + ".csv");
-    await convertCsvToJSON(file_path, subject_id_string, data_type)
+    const data_type = "ActivityTransition"
+    try {
+        fs.readdir(dataset_path, function (err, folders) {
+            folders?.forEach(async function (folder) {
+                const file_path = path.join(dataset_path, folder, data_type + ".csv");
+                const subject_id_string = folder.replace("P", "")
+                await convertCsvToJSON(file_path, subject_id_string, data_type)
+            })
+        })
+    } catch(err) {
+        const error = new HttpError(err, 500);
+        return next(error);
+    }
 
     res.status(200).json({
         data: "success"

@@ -14,6 +14,14 @@ const FileChunkSchema = new mongoose.Schema({
         type: String, 
         required: true,
     },
+    end_timestamp: {
+        type: Number, 
+        required: true,
+    },
+    start_timestamp: {
+        type: Number, 
+        required: true,
+    },
     createdAt: { type: Date, default: Date.now },
 })
 
